@@ -168,21 +168,66 @@ int bmi_set_packet_handler(bmi_port_mgr_t *port_mgr,
 
 int bmi_port_send(bmi_port_mgr_t *port_mgr,
                   int port_num, const char *buffer, int len) {
+  typedef unsigned long long u64;
+
+	u64 time_now;
+	struct timeval tv;
+
+	gettimeofday(&tv,NULL);
+	time_now = (1000000*tv.tv_sec) + tv.tv_usec;
+  
   if(!port_num_valid(port_num)) return -1;
   bmi_port_t *port = get_port(port_mgr, port_num);
+  ///////////////////////////////////////
+	FILE *output= NULL;
+	output = fopen("output.txt","a+");
+	fprintf(output, "MyLog: Now using port \t%10d\n", port_num);
+	fprintf(output, "MyLog: time: %d\n", time_now);
+	fprintf(output, "MyLog: last_out_packets = %10d\n", port->stats.out_packets);
+	fprintf(output, "MyLog: out_packets = \t%10d\n", port->stats.out_packets);
+	fprintf(output, "MyLog: out_octets = \t%10d\n", port->stats.out_octets);
+	fprintf(output, "MyLog: fail_packets = \t%10d\n", port->stats.fail_packets);
+	fprintf(output, "MyLog: rate = \t\t%10d\n", port->stats.rate);
+
+	fclose(output);
+  ///////////////////////////////////////
   pthread_rwlock_rdlock(&port_mgr->lock);
 
   if(!port_in_use(port)) {
+	pthread_mutex_lock(&port->stats_lock);
+	port->stats.fail_packets++;
+	port->stats.rate /= 2;
+	port->stats.timestamp = time_now;
+	port->stats.last_out_packets = port->stats.out_packets;
+	//set_queue_rate();
+	pthread_mutex_unlock(&port->stats_lock);
     pthread_rwlock_unlock(&port_mgr->lock);
     return -1;
   }
 
   int exitCode = bmi_interface_send(port->bmi, buffer, len);
+	//fprintf("MyLog: exitCode = %d\n", exitCode);
+	//fclose(output);
   if (!exitCode) {
     pthread_mutex_lock(&port->stats_lock);
     port->stats.out_packets += 1;
     port->stats.out_octets += len;
-    pthread_mutex_unlock(&port->stats_lock);
+    if(time_now - port->stats.timestamp > 1000){
+		port->stats.timestamp = time_now;
+		port->stats.rate += 10;
+		port->stats.last_out_packets = port->stats.out_packets;
+		//set_queue_rate();
+	}
+	pthread_mutex_unlock(&port->stats_lock);
+  }
+  else{
+	pthread_mutex_lock(&port->stats_lock);
+		port->stats.fail_packets += 1;
+		port->stats.rate /= 2;
+		port->stats.timestamp = time_now;
+		port->stats.last_out_packets = port->stats.out_packets;
+		//set_queue_rate;
+	pthread_mutex_unlock(&port->stats_lock);
   }
 
   pthread_rwlock_unlock(&port_mgr->lock);

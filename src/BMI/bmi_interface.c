@@ -127,7 +127,16 @@ int bmi_interface_send(bmi_interface_t *bmi, const char *data, int len) {
 	      (unsigned char *) data);
     pcap_dump_flush(bmi->pcap_output_dumper);
   }
-  return pcap_sendpacket(bmi->pcap, (unsigned char *) data, len);
+  //return pcap_sendpacket(bmi->pcap, (unsigned char *) data, len);
+	int result;
+	do{
+		FILE *output = NULL;
+		output = fopen("result.txt", "a+");
+		result = pcap_sendpacket(bmi->pcap, (unsigned char*) data, len);
+		fprintf(output, "MyLog: result = %d\n", result);
+	}
+	while(result != 0);
+	return result;
 }
 
 /* Does not make a copy! */

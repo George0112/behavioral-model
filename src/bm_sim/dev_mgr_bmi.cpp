@@ -90,7 +90,7 @@ class BmiDevMgrImp : public DevMgrIface {
   }
 
   void transmit_fn_(port_t port_num, const char *buffer, int len) override {
-    bmi_port_send(port_mgr, port_num, buffer, len);
+    /*while(*/bmi_port_send(port_mgr, port_num, buffer, len);
   }
 
   void start_() override {

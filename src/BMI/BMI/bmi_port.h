@@ -33,6 +33,10 @@ typedef struct bmi_port_stats_s {
   uint64_t in_octets;
   uint64_t out_packets;
   uint64_t out_octets;
+  uint64_t fail_packets;
+  uint64_t last_out_packets;
+  uint64_t timestamp;
+  uint64_t rate;
 } bmi_port_stats_t;
 
 /* the client must make a copy of the buffer memory, this memory cannot be
