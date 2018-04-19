@@ -56,10 +56,10 @@ class P4Switch(Switch):
     def __init__(self, name, sw_path = None, json_path = None,
                  thrift_port = None,
                  pcap_dump = False,
-                 log_console = False,
+                 log_console = True,
                  verbose = False,
                  device_id = None,
-                 enable_debugger = False,
+                 enable_debugger = True,
                  **kwargs):
         Switch.__init__(self, name, **kwargs)
         assert(sw_path)

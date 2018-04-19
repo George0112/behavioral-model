@@ -182,7 +182,7 @@ int bmi_port_send(bmi_port_mgr_t *port_mgr,
 	FILE *output= NULL;
 	output = fopen("output.txt","a+");
 	fprintf(output, "MyLog: Now using port \t%10d\n", port_num);
-	fprintf(output, "MyLog: time: %d\n", time_now);
+	fprintf(output, "MyLog: time: %llu\n", time_now);
 	fprintf(output, "MyLog: last_out_packets = %10d\n", port->stats.out_packets);
 	fprintf(output, "MyLog: out_packets = \t%10d\n", port->stats.out_packets);
 	fprintf(output, "MyLog: out_octets = \t%10d\n", port->stats.out_octets);

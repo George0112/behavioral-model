@@ -318,6 +318,15 @@ SimpleSwitch::ingress_thread() {
 
     phv = packet->get_phv();
 
+	if(phv->has_field("queue_head.queue2")){
+		phv->get_field("queue_head.queue2").set(egress_buffers.size(2));
+		BMLOG_DEBUG_PKT(*packet, "queue2 = {}", egress_buffers.size(2));
+	}
+	if(phv->has_field("queue_head.queue4")){
+		phv->get_field("queue_head.queue4").set(egress_buffers.size(4));
+		BMLOG_DEBUG_PKT(*packet, "queue4 = {}", egress_buffers.size(4));
+	}
+
     port_t ingress_port = packet->get_ingress_port();
     (void) ingress_port;
     BMLOG_DEBUG_PKT(*packet, "Processing packet received on port {}",
@@ -436,12 +445,19 @@ SimpleSwitch::ingress_thread() {
     egress_port = egress_spec;
     BMLOG_DEBUG_PKT(*packet, "Egress port is {}", egress_port);
 
+		FILE *output;
+		output = fopen("buffer.txt", "a+");
     if (egress_port == 511) {  // drop packet
       BMLOG_DEBUG_PKT(*packet, "Dropping packet at the end of ingress");
+		fprintf(output, "MyLog: Port: %d, Dropping packet at the end of ingress\n", egress_port);
+		fclose(output);
       continue;
     }
 
+		fprintf(output, "MyLog: Before egress port %d egress_buffer = %d\n", egress_port, egress_buffers.size(egress_port));
     enqueue(egress_port, std::move(packet));
+		fprintf(output, "MyLog: After egress port %d egress_buffer = %d\n", egress_port, egress_buffers.size(egress_port));
+		fclose(output);
   }
 }
 
@@ -545,7 +561,12 @@ SimpleSwitch::egress_thread(size_t worker_id) {
         continue;
       }
     }
-
+	bm::Logger::get()->warn("MyLog: Before output_buffer = {}", output_buffer.size());
+	FILE *output;
+	output = fopen("buffer.txt", "a+");
+	fprintf(output, "MyLog: Before output_buffer = %d\n", output_buffer.size());
     output_buffer.push_front(std::move(packet));
+	fprintf(output, "MyLog: After output_buffer = %d\n", output_buffer.size());
+	fclose(output);
   }
 }
