@@ -449,7 +449,7 @@ SimpleSwitch::ingress_thread() {
 		output = fopen("buffer.txt", "a+");
     if (egress_port == 511) {  // drop packet
       BMLOG_DEBUG_PKT(*packet, "Dropping packet at the end of ingress");
-		fprintf(output, "MyLog: Port: %d, Dropping packet at the end of ingress\n", egress_port);
+		fprintf(output, "MyLog: ingress port: %d, Dropping packet at the end of ingress\n", ingress_port);
 		fclose(output);
       continue;
     }
